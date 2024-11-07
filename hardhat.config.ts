@@ -1,88 +1,100 @@
-import "dotenv/config";
-import "solidity-coverage";
-import "@nomiclabs/hardhat-waffle";
-import "hardhat-deploy";
-import "hardhat-deploy-ethers";
-import "@typechain/hardhat";
-import "hardhat-gas-reporter";
-import "@nomiclabs/hardhat-solhint";
-import "hardhat-contract-sizer";
-import "hardhat-dependency-compiler";
+import path from 'path';
+import { HardhatUserConfig } from 'hardhat/types';
+// @ts-ignore
+import { accounts } from './test-wallets.js';
+import { COVERAGE_CHAINID, HARDHAT_CHAINID } from './helpers/constants';
+import { buildForkConfig } from './helper-hardhat-config';
 
-import { HardhatUserConfig } from "hardhat/config";
+require('dotenv').config();
 
-const accounts = {
-    mnemonic: process.env.MNEMONIC,
-    initialIndex: parseInt(process.env.ACCOUNT_INDEX ?? "0"),
-    count: 20,
-    accountsBalance: "990000000000000000000",
+import '@nomicfoundation/hardhat-toolbox';
+import 'hardhat-deploy';
+import '@tenderly/hardhat-tenderly';
+import 'hardhat-contract-sizer';
+import 'hardhat-dependency-compiler';
+import '@nomicfoundation/hardhat-chai-matchers';
+
+import { DEFAULT_NAMED_ACCOUNTS } from '@aave/deploy-v3';
+
+const DEFAULT_BLOCK_GAS_LIMIT = 12450000;
+const HARDFORK = 'london';
+
+const hardhatConfig = {
+  gasReporter: {
+    enabled: true,
+  },
+  contractSizer: {
+    alphaSort: true,
+    runOnCompile: false,
+    disambiguatePaths: false,
+  },
+  solidity: {
+    // Docs for the compiler https://docs.soliditylang.org/en/v0.8.10/using-the-compiler.html
+    version: '0.8.10',
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 100000,
+      },
+      evmVersion: 'london',
+    },
+  },
+  typechain: {
+    outDir: 'types',
+    target: 'ethers-v5',
+  },
+  mocha: {
+    timeout: 0,
+    bail: true,
+  },
+  tenderly: {
+    project: process.env.TENDERLY_PROJECT || '',
+    username: process.env.TENDERLY_USERNAME || '',
+    forkNetwork: '1', //Network id of the network we want to fork
+  },
+  networks: {
+    coverage: {
+      url: 'http://localhost:8555',
+      chainId: COVERAGE_CHAINID,
+      throwOnTransactionFailures: true,
+      throwOnCallFailures: true,
+    },
+    hardhat: {
+      hardfork: HARDFORK,
+      blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,
+      gas: DEFAULT_BLOCK_GAS_LIMIT,
+      gasPrice: 8000000000,
+      chainId: HARDHAT_CHAINID,
+      throwOnTransactionFailures: true,
+      throwOnCallFailures: true,
+      forking: buildForkConfig(),
+      allowUnlimitedContractSize: true,
+      accounts: accounts.map(({ secretKey, balance }: { secretKey: string; balance: string }) => ({
+        privateKey: secretKey,
+        balance,
+      })),
+    },
+    ganache: {
+      url: 'http://ganache:8545',
+      accounts: {
+        mnemonic: 'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm',
+        path: "m/44'/60'/0'/0",
+        initialIndex: 0,
+        count: 20,
+      },
+    },
+  },
+  namedAccounts: {
+    ...DEFAULT_NAMED_ACCOUNTS,
+  },
+  external: {
+    contracts: [
+      {
+        artifacts: './temp-artifacts',
+        deploy: 'node_modules/@aave/deploy-v3/dist/deploy',
+      },
+    ],
+  },
 };
 
-/**
- * Go to https://hardhat.org/config/ to learn more
- * @type import('hardhat/config').HardhatUserConfig
- */
-const config: HardhatUserConfig = {
-    defaultNetwork: "hardhat",
-    networks: {
-        hardhat: {
-            forking: {
-                enabled: process.env.FORKING === "true",
-                url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_MAINNET_API_KEY}`,
-            },
-            live: false,
-            saveDeployments: true,
-            tags: ["test", "local"],
-            accounts: accounts,
-            // This is because MetaMask mistakenly assumes all networks in http://localhost:8545 to have a chain id of 1337
-            // but Hardhat uses a different number by default. Please voice your support for MetaMask to fix this:
-            // https://github.com/MetaMask/metamask-extension/issues/9827
-            chainId: 1337,
-        },
-        ropsten: {
-            url: `https://eth-ropsten.alchemyapi.io/v2/${process.env.ALCHEMY_ROPSTEN_API_KEY}`,
-            accounts: accounts,
-        },
-        kovan: {
-            url: `https://eth-kovan.alchemyapi.io/v2/${process.env.ALCHEMY_KOVAN_API_KEY}`,
-            accounts: accounts,
-        },
-        mainnet: {
-            url: `https://eth-mainnet.alchemyapi.io/v2/${process.env.ALCHEMY_MAINNET_API_KEY}`,
-            accounts: accounts,
-        },
-        bsc: {
-            url: "https://bsc-dataseed.binance.org/",
-            accounts: accounts,
-        }
-    },
-    solidity: {
-        version: "0.8.9",
-        settings: {
-            optimizer: {
-                enabled: true,
-                runs: 5000,
-            },
-            outputSelection: {
-                "*": {
-                    "*": ["storageLayout"],
-                },
-            },
-        },
-    },
-    typechain: {
-        outDir: "typechain",
-        target: "ethers-v5",
-    },
-    gasReporter: {
-        coinmarketcap: process.env.COINMARKETCAP_API_KEY,
-        currency: "USD",
-        enabled: process.env.REPORT_GAS === "true",
-        excludeContracts: ["contracts/mocks/", "contracts/libraries/", "contracts/interfaces/"],
-    },
-    dependencyCompiler: {
-        paths: ["@openzeppelin/contracts/governance/TimelockController.sol"],
-    },
-};
-
-export default config;
+export default hardhatConfig;

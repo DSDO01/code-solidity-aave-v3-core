@@ -1,203 +1,130 @@
-![logo](https://user-images.githubusercontent.com/22816913/140889449-5c5afc92-0d4d-43c8-9d02-b3489eab093f.png)
+# ⚠️ This repository is DEPRECATED and no longer maintained ⚠️
 
-_https://nested.finance_
+For the latest Aave V3 code visit the V3 Origin Repository [here](https://github.com/aave-dao/aave-v3-origin).
 
-# Nested Finance contest details
-- $45,000 USDC main award pot
-- $5,000 USDC gas optimization award pot
-- Join [C4 Discord](https://discord.gg/code4rena) to register
-- Submit findings [using the C4 form](https://code4rena.com/contests/2021-11-nested-finance-contest/submit)
-- [Read our guidelines for more details](https://docs.code4rena.com/roles/wardens)
-- Starts November 11, 2021 00:00 UTC
-- Ends November 17, 2021 23:59 UTC
+[![Build pass](https://github.com/aave/aave-v3-core/actions/workflows/node.js.yml/badge.svg)](https://github.com/aave/aave-v3-core/actions/workflows/node.js.yml)
+[![codecov](https://codecov.io/gh/aave/aave-v3-core/branch/master/graph/badge.svg?token=U50KN38G67)](https://codecov.io/gh/aave/aave-v3-core)
 
-## Introduction
+```
+        .///.                .///.     //.            .//  `/////////////-
+       `++:++`              .++:++`    :++`          `++:  `++:......---.`
+      `/+: -+/`            `++- :+/`    /+/         `/+/   `++.
+      /+/   :+/            /+:   /+/    `/+/        /+/`   `++.
+  -::/++::`  /+:       -::/++::` `/+:    `++:      :++`    `++/:::::::::.
+  -:+++::-`  `/+:      --++/---`  `++-    .++-    -++.     `++/:::::::::.
+   -++.       .++-      -++`       .++.    .++.  .++-      `++.
+  .++-         -++.    .++.         -++.    -++``++-       `++.
+ `++:           :++`  .++-           :++`    :+//+:        `++:----------`
+ -/:             :/-  -/:             :/.     ://:         `/////////////-
+```
 
-Nested Finance is a decentralized protocol providing customizable financial products in the form of NFTs.
-The platform allows users to put several digital assets, i.e. ERC20 tokens, inside an NFT (abbreviated as `NestedNFT`).
-<br/>
+# Aave Protocol v3
 
-Each NestedNFT is backed by underlying assets:
-- Purchased or sold on a decentralized exchange (AMM).
-- Collected/earned after adding liquidity or staking.
-- Exchanged/Minted on a protocol that is not a decentralized exchange.
-- (...)
+This repository contains the smart contracts source code and markets configuration for Aave Protocol V3. The repository uses Docker Compose and Hardhat as development environment for compilation, testing and deployment tasks.
 
-The main idea is to allow adding modules (**operators**) to interact with new protocols
-and enable new assets, without re-deploying.
+## What is Aave?
 
-> The tokens are stored on a self-custodian smart contract.
+Aave is a decentralized non-custodial liquidity markets protocol where users can participate as suppliers or borrowers. Suppliers provide liquidity to the market to earn a passive income, while borrowers are able to borrow in an overcollateralized (perpetually) or undercollateralized (one-block liquidity) fashion.
 
-At the end of the creation process, the user receives the NFT which allows to control all underlying assets of the portfolio.
-Furthermore, we allow users to copy other users’ NestedNFTs. The creator of the initial NestedNFT earns royalties.
+## Documentation
 
-#### _Further documentation and details can be found here: https://docs.nested.finance/_
+See the link to the technical paper or visit the Aave Developer docs
 
-## Architecture 🏗️
+- [Technical Paper](./techpaper/Aave_V3_Technical_Paper.pdf)
 
-![diagram](https://user-images.githubusercontent.com/22816913/140886706-ee9e18f8-de84-4bcf-af20-5847b79cc508.png)
+- [Developer Documentation](https://docs.aave.com/developers/)
 
-![fee_diagram](https://user-images.githubusercontent.com/22816913/141099030-473533d6-2b17-48b2-9f18-cf4e310a1d6d.png)
+## Audits and Formal Verification
 
-### Core contracts
+You can find all audit reports under the audits folder
 
-| Name             | LOC | Purpose  |
-|------------------|-----|----------|
-| **NestedFactory**    | **561** | Entry point to the protocol. Holds the business logic. Responsible for interactions with operators (submit orders). |
-| **NestedAsset**      | **154** | Collection of ERC721 tokens. Called NestedNFT across the codebase. |
-| **NestedReserve**    | **70**  | Holds funds for the user. Transferred from the NestedFactory. |
-| **NestedRecords**    | **233** | Tracks underlying assets of NestedNFTs. (Amount, NestedReserve). |
-| **FeeSplitter**      | **276** | Receives payments in ERC20 tokens from the factory when fees are sent. Allows each party to claim the amount they are due. |
-| **NestedBuyBacker**  | **121** | Pulls tokens from the FeeSplitter, buys back NST tokens on the market, and burns a part of it. |
+V3.0.1 - December 2022
 
-> Nested Finance will launch a token (NST). The contract is out of the scope of this audit.
+- [PeckShield](./audits/09-12-2022_PeckShield_AaveV3-0-1.pdf)
+- [SigmaPrime](./audits/23-12-2022_SigmaPrime_AaveV3-0-1.pdf)
 
-### Operators (modularization)
+V3 Round 1 - October 2021
 
-#### What is an operator?
+- [ABDK](./audits/27-01-2022_ABDK_AaveV3.pdf)
+- [OpenZeppelin](./audits/01-11-2021_OpenZeppelin_AaveV3.pdf)
+- [Trail of Bits](./audits/07-01-2022_TrailOfBits_AaveV3.pdf)
+- [Peckshield](./audits/14-01-2022_PeckShield_AaveV3.pdf)
 
-`NestedFactory` is the main smart contract, but it can't work without the Operators.
+V3 Round 2 - December 2021
 
-As mentioned in the introduction, we designed the protocol to be **modular**.
-We want to be able to interact with any protocol in exchange for an ERC20 token.
+- [SigmaPrime](./audits/27-01-2022_SigmaPrime_AaveV3.pdf)
 
-So, we had to deal with two issues :
-- How to interact with 5, 10, or 20 protocols without blowing up the bytecode size and having too much logic?
-- How to add new interactions without redeploying the `NestedFactory` contract?
+Formal Verification - November 2021-January 2022
 
-Our solution is called the "**Operator**"... A new interaction is a new operator and can be added on the fly.
-They kind of work like [libraries](https://docs.soliditylang.org/en/v0.8.9/contracts.html#libraries), but since we don't want to redeploy the factory,
-they are contracts that are called via `delegatecall` and referenced by the `OperatorResolver`.
+- [Certora](./certora/Aave_V3_Formal_Verification_Report_Jan2022.pdf)
 
-#### One language
-To interact with new operators on the fly, they must speak the same language.
-Let's define the "interactions" common to all operators: `commit` and `revert`.
+## Connect with the community
 
-An operator allows performing a precise action, like _"swap my token A for a token B"_. When we want to perform this action, we will "**commit**".
-On the other hand, all the actions in DeFi can be carried out in the opposite direction, like "_swap my token B against a token A_".
-When we want to "reverse" an action that we have "committed", we will "**revert**".
+You can join the [Discord](http://aave.com/discord) channel or the [Governance Forum](https://governance.aave.com/) to ask questions about the protocol or talk about Aave with other peers.
 
-**Some examples:**
+## Getting Started
 
-| Name     | Commit  |  Revert  |
-|----------|---------|----------|
-| Swap     | Swap token A for token B | Swap token B for token A |
-| Add Liquidity | - Swap half of token A for token B. <br> - Add liquidity to A-B pool. | - Remove liquidity from A-B pool. <br>- Swap (all) token B for token A. |
-| Liquidity Mining | - Swap half of token A for token B. <br>- Add liquidity to A-B pool. <br>- Stake LP token (for token C reward). | - Unstake LP Token. <br>- **(optional)** Swap token C for token A. <br>- Remove liquidity from A-B Pool. <br>- Swap (all) token B for token A. |
+You can install `@aave/core-v3` as an NPM package in your Hardhat or Truffle project to import the contracts and interfaces:
 
-#### Storage
+`npm install @aave/core-v3`
 
-Since the operators are called via `delegatecall`: _how can we store/retrieve useful data?_
-<br>In fact, we cannot trust the Factory to provide all the data, like the address of the protocol. It must be stored and managed by the owner.
+Import at Solidity files:
 
-When deploying an operator, it will also deploy the storage contract using `CREATE2` and transfer the ownership to `msgSender()`.
+```
+import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 
-This way, the operator can retrieve the storage address (without storing it) and get the data.
+contract Misc {
 
-#### Diagram
+  function supply(address pool, address token, address user, uint256 amount) public {
+    IPool(pool).supply(token, amount, user, 0);
+    {...}
+  }
+}
+```
 
-![image](https://user-images.githubusercontent.com/22816913/140764920-42418305-c919-4194-9891-52f2f33122f2.png)
+The JSON artifacts with the ABI and Bytecode are also included in the bundled NPM package at `artifacts/` directory.
 
-#### Contracts
+Import JSON file via Node JS `require`:
 
-| Name                  | LOC  | Purpose  |
-|-----------------------|------|----------|
-| OperatorResolver      | **61** | Allows the factory to identify which operator to interact with. |
-| MixinOperatorResolver | **67** | Abstract contract to load authorized operators in cache (instead of calling `OperatorResolver`). |
-| ZeroExOperator        | **77** | Performs token swaps through 0x ([read more](contracts/operators/ZeroEx/README.md)). |
-| ZeroExStorage         | **20** | ZeroExOperator storage contract. Must store the 0x `swapTarget`. |
-| FlatOperator          | **41** | Handles deposits and withdraws. No interaction with any third parties ([read more](contracts/operators/Flat/README.md)). |
+```
+const PoolV3Artifact = require('@aave/core-v3/artifacts/contracts/protocol/pool/Pool.sol/Pool.json');
 
-_More operators will be added. e.g. CurveOperator or SynthetixOperator_
+// Log the ABI into console
+console.log(PoolV3Artifact.abi)
+```
 
-### Ownership & Governance
-Some functions of the protocol require admin rights (`onlyOwner`).
+## Setup
 
-The contracts are owned by the [TimelockController](https://docs.openzeppelin.com/contracts/4.x/api/governance#TimelockController) contract from OpenZeppelin, set with a **7-days** delay.
-This ensures the community has time to review any changes made to the protocol.
+The repository uses Docker Compose to manage sensitive keys and load the configuration. Prior to any action like test or deploy, you must run `docker-compose up` to start the `contracts-env` container, and then connect to the container console via `docker-compose exec contracts-env bash`.
 
-The owner of the TimelockController is a three-party multisignature wallet.
-> During the next phase of the protocol, the ownership will be transferred to a fully decentralized DAO.
+Follow the next steps to setup the repository:
 
-### Deflationary tokens
+- Install `docker` and `docker-compose`
+- Create an environment file named `.env` and fill the next environment variables
 
-The protocol is incompatible with deflationary tokens.
-In fact, you can add a deflationary token to your portfolio but it can lead to unpredictable behaviors (positive or negative).
+```
+# Add Alchemy or Infura provider keys, alchemy takes preference at the config level
+ALCHEMY_KEY=""
+INFURA_KEY=""
 
-We have chosen to manage the tokens with a fixed amount (the input) after considering several solutions.
 
-**So, how can we mitigate that ?**
+# Optional, if you plan to use Tenderly scripts
+TENDERLY_PROJECT=""
+TENDERLY_USERNAME=""
 
-We're going to maintain a list of all rebase tokens (source coingecko, which is well maintained) and prevent users from adding them to their portfolio on the platform, 
-as well as showing warnings about any rebase tokens that we wouldn't be able to track.
+```
 
-## Main concerns 🤔
+## Test
 
-Our main concerns are : 
-- The modular architecture (Factory => Operator). 
-- Protection against malicious calldatas (`Order[] calldata _orders`).
-- Funds safety in `NestedReserve` and `FeeSplitter`.
+You can run the full test suite with the following commands:
 
-## ⚠️ Audits _(already completed)_ ⚠️
+```
+# In one terminal
+docker-compose up
 
-Two audits have already been completed by [Red4Sec](https://red4sec.com/) and [Peckshield](https://peckshield.com).
+# Open another tab or terminal
+docker-compose exec contracts-env bash
 
-### Links
-- [Peckshield Audit Report v1.0](audits/PeckShield-Audit-Report-Nested-v1.0.pdf)
-- [Red4Sec Audit Report v1.0](audits/Red4Sec_Nested_Finance_Security_Audit_Report_v3.pdf)
-
-## Development & Testing
-
-### Setup
-- Install Node > 12
-- Install Yarn
-- `yarn install`
-- Copy `.env.example` to a new file `.env` and insert a dummy mnemonic and a mainnet api key
-
-### Commands
-
-- Start a local blockchain
-  `yarn run`
-
-- Start a hardhat console
-  `yarn console`
-
-- Compile
-  `yarn compile`
-
-- Generate typechain files
-  `yarn typechain`
-
-- Run tests
-  `yarn test`
-
-## Links
-
-- **Website** : https://nested.finance
-- **Documentation** : https://docs.nested.finance/
-- **Medium** : https://nestedfinance.medium.com/
-- **Twitter** : https://twitter.com/NestedFinance
-- **Telegram** : https://t.me/NestedFinanceChannel
-- **Discord** : https://discord.gg/VW8ZZsACzd
-
-## Contact us 📝
-
-Wardens! If you have any questions, please contact us!
-
-#### Axxe (Smart contract engineer)
-- **Telegram** : @axxedev
-- **Discord** : axxe#8561
-- **Schedule a call** : [Calendly](https://calendly.com/maxime-brugel/lets-talk)
-
-#### Adrien (CTO)
-
-- **Telegram** : @adrienspt
-- **Discord** : Adrien | Nested Finance#6564
-- **Schedule a call** : [Calendly](https://calendly.com/adrien-supizet/30min)
-
-## Beta access β
-
-If you want to access the beta version of Nested Finance, contact [Adrien](#adrien-cto) or [Axxe](#axxe-smart-contract-engineer).
-It can help to better understand the protocol context.
-
-**_Note :_ The Beta is running on the v1 (puzzle) of the protocol. The version of this contest is the v2 (lego).**
+# A new Bash terminal is prompted, connected to the container
+npm run test
+```
